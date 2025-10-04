@@ -3,7 +3,7 @@ import { clerkClient } from "@clerk/express";
 //middleware protect educator routes
 export const protectEducator = async (req, res, next)=>{
     try{
-        console.log(req.auth)
+        
         const userId = req.auth.userId
         const response = await clerkClient.users.getUser(userId)
 
