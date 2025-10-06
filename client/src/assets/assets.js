@@ -42,7 +42,7 @@ import profile_img from './profile_img.png'
 import profile_img2 from './profile_img2.png'
 import profile_img3 from './profile_img3.png'
 import lesson_icon from './lesson_icon.svg'
-
+import delete_icon from './delete-button-png-28554.png'
 
 export const assets = {
     logo,
@@ -52,6 +52,7 @@ export const assets = {
     walmart_logo,
     accenture_logo,
     adobe_logo,
+    delete_icon,
     paypal_logo,
     course_1_thumbnail,
     course_2_thumbnail,

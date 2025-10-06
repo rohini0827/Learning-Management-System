@@ -58,7 +58,7 @@ const Dashboard = () => {
             </div>
 
           </div>
-          <div>
+          {/* <div>
             <h2 className='pb-4 te3xt-lg font-medium'>Latest Enrollments</h2>
             <div className='flex flex-col items-center max-w-4xl w-full overflow-hidden rounded-md bg-white border border-gray-500/20'>
             <table className='table-fixed md:table-auto w-full md:hidden'>
@@ -84,8 +84,51 @@ const Dashboard = () => {
               </tbody>
             </table>
             </div>
+          </div> */}
+           <div className='min-h-screen flex flex-col items-start justify-between gap-8 md:p-8 md:pb-0 p-4 pt-8 pb-0'>
+      <div className='space-y-5'>
+        
+        
+        <div>
+          <h2 className='pb-4 text-lg font-medium'>Latest Enrollments</h2>
+          <div className='flex flex-col items-center max-w-4xl w-full overflow-hidden rounded-md bg-white border border-gray-500/20'>
+            <table className='table-fixed md:table-auto w-full'>
+              <thead className='text-gray-900 border-b border-gray-500/20 text-sm text-left'>
+                <tr>
+                  <th className='px-4 py-3 font-semibold text-center hidden sm:table-cell'>Sr.No.</th>
+                  <th className='px-4 py-3 font-semibold'>Student</th>
+                  <th className='px-4 py-3 font-semibold'>Course Title</th>
+                </tr>
+              </thead>
+              <tbody className='text-sm text-gray-500'>
+                {dashboardData.enrolledStudentsData && dashboardData.enrolledStudentsData.length > 0 ? (
+                  dashboardData.enrolledStudentsData.map((item, index) => (
+                    <tr key={index} className='border-b border-gray-500/20'>
+                      <td className='px-4 py-3 text-center hidden sm:table-cell'>{index + 1}</td>
+                      <td className='md:px-4 px-2 py-3 flex items-center space-x-3'>
+                        <img 
+                          src={item.student?.imageUrl || assets.default_avatar} 
+                          alt="Profile" 
+                          className='w-9 h-9 rounded-full'
+                        />
+                        <span className='truncate'>{item.student?.name || 'Unknown Student'}</span>
+                      </td>
+                      <td className='px-4 py-3 truncate'>{item.courseTitle || 'Unknown Course'}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="3" className="px-4 py-8 text-center text-gray-500">
+                      No enrollments found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-
+        </div>
+      </div>
+    </div>
 
         </div>
 

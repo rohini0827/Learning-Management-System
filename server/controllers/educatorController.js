@@ -3,7 +3,7 @@ import Course from '../models/Course.js'
 import {v2 as cloudinary} from 'cloudinary'
 import { Purchase } from '../models/Purchase.js'
 import User from '../models/User.js'
-
+import { CourseProgress } from '../models/CourseProgress.js'
 //update role to educator
 export const updateRoleToEducator = async (req, res)=>{
     try{
@@ -61,6 +61,46 @@ export const getEducatorCourses = async (req, res)=>{
 
 // get educator dashboard data {total courses, total students, no. of courses}
 
+// export const educatorDashboardData = async (req, res)=>{
+//     try{
+//         const educator = req.auth.userId;
+//         const courses = await Course.find({ educator });
+//         const totalCourses = courses.length;
+
+//         const courseIds = courses.map(course => course._id);
+
+//         //calculate total earning from purchases
+//         const purchases = await Purchase.find({ 
+//             courseId: { $in: courseIds },
+//             status: 'completed'
+//         });
+
+//         const totalEarnings = purchases.reduce((sum, purchase) => sum + purchase.amount, 0);
+
+//         //collect unique enrolled student IDs with their course titles
+//         const enrolledStudentsData = [];
+//         for(const course of courses){
+//             const students = await User.find({
+//                 _id: { $in: course.enrolledStudents }
+//             }, 'name imageUrl');
+
+//             students.forEach(student =>{
+//                 enrolledStudentsData.push({
+//                     courseTitle: course.courseTitle,
+//                     student
+//                 });
+//             });
+//         }
+
+//         res.json({success: true, dashboardData: {
+//             totalEarnings, enrolledStudentsData, totalCourses
+//         }})
+
+//     } catch (error){
+//         res.json({success: false, message: error.message});
+//     }
+// }
+
 export const educatorDashboardData = async (req, res)=>{
     try{
         const educator = req.auth.userId;
@@ -69,7 +109,7 @@ export const educatorDashboardData = async (req, res)=>{
 
         const courseIds = courses.map(course => course._id);
 
-        //calculate total earning from purchases
+        // Calculate total earning from purchases
         const purchases = await Purchase.find({ 
             courseId: { $in: courseIds },
             status: 'completed'
@@ -77,26 +117,46 @@ export const educatorDashboardData = async (req, res)=>{
 
         const totalEarnings = purchases.reduce((sum, purchase) => sum + purchase.amount, 0);
 
-        //collect unique enrolled student IDs with their course titles
+        // ✅ FIXED: Get enrolled students from purchases
         const enrolledStudentsData = [];
-        for(const course of courses){
-            const students = await User.find({
-                _id: { $in: course.enrolledStudents }
-            }, 'name imageUrl');
-
-            students.forEach(student =>{
-                enrolledStudentsData.push({
-                    courseTitle: course.courseTitle,
-                    student
-                });
-            });
+        
+        for(const purchase of purchases){
+            try {
+                const student = await User.findById(purchase.userId);
+                const course = await Course.findById(purchase.courseId);
+                
+                if(student && course){
+                    enrolledStudentsData.push({
+                        courseTitle: course.courseTitle,
+                        student: {
+                            _id: student._id,
+                            name: student.name,
+                            imageUrl: student.imageUrl,
+                            email: student.email
+                        },
+                        purchaseDate: purchase.createdAt
+                    });
+                }
+            } catch (err) {
+                console.error('Error fetching student/course data:', err);
+                continue;
+            }
         }
 
-        res.json({success: true, dashboardData: {
-            totalEarnings, enrolledStudentsData, totalCourses
-        }})
+        // ✅ Sort by purchase date to get latest enrollments first
+        enrolledStudentsData.sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate));
+
+        res.json({
+            success: true, 
+            dashboardData: {
+                totalEarnings, 
+                enrolledStudentsData, 
+                totalCourses
+            }
+        });
 
     } catch (error){
+        console.error('[educatorDashboardData] Error:', error);
         res.json({success: false, message: error.message});
     }
 }
@@ -125,3 +185,62 @@ export const getEnrolledStudentsData = async (req, res)=>{
         res.json({success: false, message: error.message})
     }
 }
+
+// Delete course and all related data
+export const deleteCourse = async (req, res) => {
+    try {
+        const educatorId = req.auth.userId;
+        const { courseId } = req.body;
+
+        if (!courseId) {
+            return res.json({ success: false, message: 'Course ID is required' });
+        }
+
+        // Check if course exists and belongs to the educator
+        const course = await Course.findOne({ _id: courseId, educator: educatorId });
+        if (!course) {
+            return res.json({ 
+                success: false, 
+                message: 'Course not found or you are not authorized to delete this course' 
+            });
+        }
+
+        // Delete all related data in parallel for better performance
+        await Promise.all([
+            // Delete the course
+            Course.findByIdAndDelete(courseId),
+            
+            // Delete all purchases for this course
+            Purchase.deleteMany({ courseId }),
+            
+            // Delete all course progress records
+            CourseProgress.deleteMany({ courseId }),
+            
+            // Remove course from users' enrolledCourses array
+            User.updateMany(
+                { enrolledCourses: courseId },
+                { $pull: { enrolledCourses: courseId } }
+            )
+        ]);
+
+        // If you have cloudinary image, you might want to delete it too
+        if (course.courseThumbnail) {
+            try {
+                const publicId = course.courseThumbnail.split('/').pop().split('.')[0];
+                await cloudinary.uploader.destroy(publicId);
+            } catch (cloudinaryError) {
+                console.error('Error deleting Cloudinary image:', cloudinaryError);
+                // Continue even if image deletion fails
+            }
+        }
+
+        res.json({ 
+            success: true, 
+            message: 'Course and all related data deleted successfully' 
+        });
+
+    } catch (error) {
+        console.error('[deleteCourse] Error:', error);
+        res.json({ success: false, message: error.message });
+    }
+};

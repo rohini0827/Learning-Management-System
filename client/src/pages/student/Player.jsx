@@ -44,15 +44,22 @@ const Player = () => {
   };
 
   useEffect(()=>{
-    if(enrolledCourses,length > 0){
+    if(enrolledCourses.length > 0){
       getCourseData()
     }
-  }, [enrolledCourses])
+  }, [enrolledCourses]);
+
+  useEffect(() => {
+  if (!enrolledCourses.length && userData) {
+    fetchUserEnrolledCourses();
+  }
+}, [userData]);
+
 
   const markLectureAsCompleted = async (lectureId)=>{
     try {
       const token = await getToken()
-      const { data } = await axios.post(backendUrl + '/api/user/update-course-progess', {courseId, lectureId}, { headers: { Authorization: `Bearer ${token}` }})
+      const { data } = await axios.post(backendUrl + '/api/user/update-course-progress', {courseId, lectureId}, { headers: { Authorization: `Bearer ${token}` }})
 
       if(data.success){
         toast.success(data.message)
@@ -159,7 +166,7 @@ const Player = () => {
         <div className='md:mt-10'>
           {playerData ? (
             <div>
-              <YouTube videoId={playerData.lectureUrl.split('/').pop()}  iframeClassName='w-full aspect-video' />
+              <YouTube videoId={playerData?.lectureUrl?.split('/').pop()} iframeClassName='w-full aspect-video' />
               <div className='flex justify-between items-center mt-1'>
                 <p>{playerData.chapter}.{playerData.lecture}{playerData.lectureTitle}</p>
                 <button onClick={()=> markLectureAsCompleted (playerData.lectureId)} className='text-blue-600'>{progressData && progressData.lectureCompleted.includes(playerData.lectureId) ? 'Completed' : 'Mark Complete'}</button>
