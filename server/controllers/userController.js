@@ -195,47 +195,59 @@ export const purchaseCourse = async (req, res) => {
 };
 
 //update user course progress
-export const updateUserCourseProgress = async (req, res)=>{
+export const updateUserCourseProgress = async (req, res) => {
     try {
         const auth = await req.auth();
-        const userId = req.auth.userId
-        const { courseId, lectureId } = req.body
-        const progressData = await CourseProgress.findOne({userId, courseId })
+        const userId = auth.userId; // ✅ FIXED: Use auth.userId
+        const { courseId, lectureId } = req.body;
+        
+        console.log(`[updateProgress] User: ${userId}, Course: ${courseId}, Lecture: ${lectureId}`); // Debug log
 
-        if(progressData){
-            if(progressData.lectureCompleted.includes(lectureId)){
-                return res.json({success: true, message: 'Lecture Already Completed'})
+        const progressData = await CourseProgress.findOne({ userId, courseId });
+
+        if (progressData) {
+            if (progressData.lectureCompleted.includes(lectureId)) {
+                return res.json({ success: true, message: 'Lecture Already Completed' });
             }
 
-            progressData.lectureCompleted.push(lectureId)
-            await progressData.save()
-        } else{
-            await CourseProgress.create({
+            progressData.lectureCompleted.push(lectureId);
+            await progressData.save();
+            console.log(`[updateProgress] Updated existing progress: ${progressData.lectureCompleted.length} lectures completed`); // Debug log
+        } else {
+            const newProgress = await CourseProgress.create({
                 userId,
                 courseId,
                 lectureCompleted: [lectureId]
-            })
+            });
+            console.log(`[updateProgress] Created new progress document: ${newProgress._id}`); // Debug log
         }
 
-        res.json({success: true, message: 'Progress Updated'})
+        res.json({ success: true, message: 'Progress Updated' });
 
     } catch (error) {
-        res.json({ success: false, message: error.message })
+        console.error('[updateUserCourseProgress] Error:', error);
+        res.json({ success: false, message: error.message });
     }
-}
+};
 
 //get user course progress
-export const getUserCourseProgress = async (req, res)=>{
+export const getUserCourseProgress = async (req, res) => {
     try {
         const auth = await req.auth();
-        const userId = req.auth.userId
-        const { courseId } = req.body
-        const progressData = await CourseProgress.findOne({userId, courseId })
-        res.json({success: true, progressData})
+        const userId = auth.userId; // ✅ FIXED: Use auth.userId
+        const { courseId } = req.body;
+        
+        console.log(`[getProgress] User: ${userId}, Course: ${courseId}`); // Debug log
+
+        const progressData = await CourseProgress.findOne({ userId, courseId });
+        console.log(`[getProgress] Found progress:`, progressData); // Debug log
+        
+        res.json({ success: true, progressData });
     } catch (error) {
-        res.json({ success: false, message: error.message })
+        console.error('[getUserCourseProgress] Error:', error);
+        res.json({ success: false, message: error.message });
     }
-}
+};
 
 //add user rating to the course
 export const addUserRating = async (req, res)=>{

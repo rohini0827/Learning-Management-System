@@ -7,7 +7,7 @@ const Footer = () => {
       <div className='flex flex-col md:flex-row items-start px-8 md:px-0 justify-center gap-10 md:gaap-32 py-10 border-b border-white/30'>
         <div className='flex flex-col md:items-start items-center w-full'>
           <img src={assets.logo_dark} alt='logo'/>
-          <p className='mt-6 text-center md:text-left text-sm text-white/80'>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aut delectus, vel natus soluta magni cum. Ea quos eos deleniti in mollitia laborum fugiat quisquam maiores sed optio, id cumque doloribus.</p>
+          <p className='mt-6 text-center md:text-left text-sm text-white/80'>Your journey to success starts here, discover top-rated courses, learn from experts, and grow your career.</p>
         </div>
         <div className='flex flex-col md:items-start items-center w-full'>
           <h2 className='font-semibold text-white mb-5'>Company</h2>
@@ -27,7 +27,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
-      <p  className='py-4 text-center text-xs md:text-sm text-white/60'>Copyright 2025 © Eduxcel. All Right Reserved. </p>
+      <p  className='py-4 text-center text-xs md:text-sm text-white/60'>Copyright 2025 © Edemy. All Right Reserved. </p>
     </footer>
   )
 }

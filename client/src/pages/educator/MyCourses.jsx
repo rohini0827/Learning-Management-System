@@ -6,10 +6,11 @@ import { toast } from 'react-toastify'
 import { assets } from '../../assets/assets'
 
 const MyCourses = () => {
-  const { currency, backendUrl, isEducator, getToken } = useContext(AppContext)
+  const { currency, backendUrl, isEducator, getToken, navigate } = useContext(AppContext)
   const [courses, setCourses] = useState(null)
   const [loading, setLoading] = useState(false)
   const [courseToDelete, setCourseToDelete] = useState(null)
+  const [quizStats, setQuizStats] = useState({})
 
   const fetchEducatorCourses = async () => {
     try {
@@ -20,11 +21,34 @@ const MyCourses = () => {
 
       if (data.success) {
         setCourses(data.courses)
+        // Fetch quiz completion stats
+        fetchQuizCompletionStats();
       }
     } catch (error) {
       toast.error(error.message)
     }
   }
+
+  const fetchQuizCompletionStats = async () => {
+    try {
+      const token = await getToken();
+      const { data } = await axios.get(
+        `${backendUrl}/api/certificate/stats`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (data.success) {
+        // Convert array to object for easy access
+        const statsObj = {};
+        data.stats.forEach(stat => {
+          statsObj[stat.courseId] = stat;
+        });
+        setQuizStats(statsObj);
+      }
+    } catch (error) {
+      console.error('Error fetching quiz stats:', error);
+    }
+  };
 
   const deleteCourse = async (courseId) => {
     try {
@@ -38,7 +62,6 @@ const MyCourses = () => {
 
       if (data.success) {
         toast.success(data.message)
-        // Remove course from local state
         setCourses(prevCourses => prevCourses.filter(course => course._id !== courseId))
       } else {
         toast.error(data.message)
@@ -59,6 +82,13 @@ const MyCourses = () => {
     setCourseToDelete(null)
   }
 
+  // In MyCourses.jsx, update the handleAllotCertificate function:
+const handleAllotCertificate = (courseId) => {
+  console.log('🔄 Navigating to certificate requests with courseId:', courseId);
+  
+  // Use the correct nested route path
+  navigate(`/educator/certificate-requests/${courseId}`);
+}
   useEffect(() => {
     if (isEducator) {
       fetchEducatorCourses()
@@ -76,34 +106,54 @@ const MyCourses = () => {
                 <th className='px-4 py-3 font-semibold truncate'>All Courses</th>
                 <th className='px-4 py-3 font-semibold truncate'>Earnings</th>
                 <th className='px-4 py-3 font-semibold truncate'>Students</th>
+                <th className='px-4 py-3 font-semibold truncate'>Quiz Completed</th>
                 <th className='px-4 py-3 font-semibold truncate'>Published On</th>
+                <th className='px-4 py-3 font-semibold truncate'>Certificate</th>
                 <th className='px-4 py-3 font-semibold truncate'>Actions</th>
               </tr>
             </thead>
             <tbody className="text-sm text-gray-500">
-              {courses.map((course) => (
-                <tr key={course._id} className='border-b border-gray-500/20'>
-                  <td className="md:px-4 pl-2 md:pl-4 py-3 flex items-center space-x-3 truncate">
-                    <img src={course.courseThumbnail} alt="Course Image" className="w-16 h-10 object-cover rounded" />
-                    <span className="truncate hidden md:block">{course.courseTitle}</span>
-                  </td>
-                  <td className='px-4 py-3'>
-                    {currency} {Math.floor(course.enrolledStudents.length * (course.coursePrice - course.discount * course.coursePrice / 100))}
-                  </td>
-                  <td className='px-4 py-3'>{course.enrolledStudents.length}</td>
-                  <td className='px-4 py-3'>{new Date(course.createdAt).toLocaleDateString()}</td>
-                  <td className='px-4 py-3'>
-                    <button
-                      onClick={() => confirmDelete(course)}
-                      disabled={loading}
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1 disabled:opacity-50"
-                    >
-                      <img src={assets.delete_icon} alt="Delete" className="w-4 h-4" />
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {courses.map((course) => {
+                const stats = quizStats[course._id] || { studentsPassedQuiz: 0, totalEnrolled: 0 };
+                
+                return (
+                  <tr key={course._id} className='border-b border-gray-500/20'>
+                    <td className="md:px-4 pl-2 md:pl-4 py-3 flex items-center space-x-3 truncate">
+                      <img src={course.courseThumbnail} alt="Course Image" className="w-16 h-10 object-cover rounded" />
+                      <span className="truncate hidden md:block">{course.courseTitle}</span>
+                    </td>
+                    <td className='px-4 py-3'>
+                      {currency} {Math.floor(course.enrolledStudents.length * (course.coursePrice - course.discount * course.coursePrice / 100))}
+                    </td>
+                    <td className='px-4 py-3'>{course.enrolledStudents.length}</td>
+                    <td className='px-4 py-3'>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-green-600">{stats.studentsPassedQuiz}</span>
+                        <span className="text-xs text-gray-400">passed quiz</span>
+                      </div>
+                    </td>
+                    <td className='px-4 py-3'>{new Date(course.createdAt).toLocaleDateString()}</td>
+                    <td className='px-4 py-3'>
+                      <button
+                        onClick={() => handleAllotCertificate(course._id)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                      >
+                        📜 Allot Certificate
+                      </button>
+                    </td>
+                    <td className='px-4 py-3'>
+                      <button
+                        onClick={() => confirmDelete(course)}
+                        disabled={loading}
+                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1 disabled:opacity-50"
+                      >
+                        <img src={assets.delete_icon} alt="Delete" className="w-4 h-4" />
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
           

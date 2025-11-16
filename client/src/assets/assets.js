@@ -43,7 +43,7 @@ import profile_img2 from './profile_img2.png'
 import profile_img3 from './profile_img3.png'
 import lesson_icon from './lesson_icon.svg'
 import delete_icon from './delete-button-png-28554.png'
-
+import quiz_icon from './quiz.png'
 export const assets = {
     logo,
     search_icon,
@@ -53,6 +53,7 @@ export const assets = {
     accenture_logo,
     adobe_logo,
     delete_icon,
+    quiz_icon,
     paypal_logo,
     course_1_thumbnail,
     course_2_thumbnail,
@@ -104,25 +105,25 @@ export const dummyEducatorData = {
 
 export const dummyTestimonial = [
     {
-        name: 'Donald Jackman',
+        name: 'Nickolas Potter',
         role: 'SWE 1 @ Amazon',
         image: assets.profile_img_1,
         rating: 5,
-        feedback: 'I\'ve been using Imagify for nearly two years, primarily for Instagram, and it has been incredibly user-friendly, making my work much easier.',
+        feedback: 'The course was informative and well-paced. I’d definitely recommend it to anyone starting in web development.',
     },
     {
-        name: 'Richard Nelson',
-        role: 'SWE 2 @ Samsung',
+        name: 'Joseph Morgan',
+        role: 'IT Professional',
         image: assets.profile_img_2,
         rating: 4,
-        feedback: 'I\'ve been using Imagify for nearly two years, primarily for Instagram, and it has been incredibly user-friendly, making my work much easier.',
+        feedback: 'I appreciated the detailed explanations and real-world examples. It helped me gain confidence in coding.',
     },
     {
         name: 'James Washington',
-        role: 'SWE 2 @ Google',
+        role: 'Computer Engineering Student',
         image: assets.profile_img_3,
         rating: 4.5,
-        feedback: 'I\'ve been using Imagify for nearly two years, primarily for Instagram, and it has been incredibly user-friendly, making my work much easier.',
+        feedback: 'Great content and easy-to-follow tutorials. Perfect for beginners who want to get hands-on experience.',
     },
 ];
 

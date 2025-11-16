@@ -11,9 +11,12 @@ import Dashboard from './pages/educator/Dashboard'
 import AddCourse from './pages/educator/AddCourse'
 import MyCourses from './pages/educator/MyCourses'
 import StudentsEnrolled from './pages/educator/StudentsEnrolled'
+import AddQuiz from './pages/educator/AddQuiz'
 import Navbar from './components/student/Navbar'
 import "quill/dist/quill.snow.css";
 import { ToastContainer } from 'react-toastify';
+import Quiz from './pages/student/Quiz'
+import CertificateRequests from './pages/educator/CertificateRequests'
 
 const App = () => {
 
@@ -32,15 +35,21 @@ const App = () => {
         <Route path='/my-enrollments' element={<MyEnrollments />} />
         <Route path='/player/:courseId' element={<Player />} />
         <Route path='/loading/:path' element={<Loading />} />
+        <Route path='/quiz/:courseId' element={<Quiz />} />
 
         {/* Educator Routes */}
         <Route path='/educator' element={<Educator />}>
-          {/* <Route path='educator' element={<Dashboard />}> */}
-           <Route index element={<Dashboard />} /> {/*default child route */} 
+          <Route index element={<Dashboard />} />
           <Route path="add-course" element={<AddCourse />} /> 
           <Route path="my-courses" element={<MyCourses />} /> 
+          <Route path="add-quiz" element={<AddQuiz />} />
           <Route path="student-enrolled" element={<StudentsEnrolled />} />
+          {/* FIXED: Remove the leading slash for nested routes */}
+          <Route path="certificate-requests/:courseId" element={<CertificateRequests />} />
         </Route>
+
+        {/* Alternative: If you want it as a standalone route outside educator layout */}
+        {/* <Route path="/certificate-requests/:courseId" element={<CertificateRequests />} /> */}
       </Routes>
     </div>
   )
